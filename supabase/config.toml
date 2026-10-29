@@ -1,0 +1,16 @@
+# Functions authenticate with the x-sync-key header (or the LINE signature for
+# line-webhook), since pg_cron, GitHub Actions and LINE send no Supabase JWT.
+[functions.loyverse-sync]
+verify_jwt = false
+
+[functions.line-daily-summary]
+verify_jwt = false
+
+[functions.line-send-report]
+verify_jwt = false
+
+[functions.line-webhook]
+verify_jwt = false
+
+[functions.report-data]
+verify_jwt = false

@@ -1,0 +1,409 @@
+<meta name="dash-one-writer">
+<style>
+  .mk { display: grid; gap: var(--cds-gap-lg); font-family: var(--font-anthropic-sans); font-variant-numeric: tabular-nums; }
+  .mk-head { display: grid; gap: var(--cds-gap-xs); }
+  .mk-title { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; }
+  .mk-lede { margin: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-body); }
+  .mk-lede b { color: var(--color-fg); font-weight: 600; }
+  .mk-tiles { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+  .mk-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: grid; gap: var(--cds-gap-xs); align-content: start; min-width: 0; }
+  .mk-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; }
+  .mk-big { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); line-height: 1.15; min-height: 1.15em; }
+  .mk-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); display: flex; flex-wrap: wrap; gap: 0 var(--cds-gap-sm); }
+  .mk-up { color: var(--color-ok); }
+  .mk-down { color: var(--color-bad); }
+  .mk-grid { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); }
+  .mk-card h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; }
+  .mk-note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; }
+  .mk-chart { position: relative; min-height: 220px; }
+  .mk-chart.mk-short { min-height: 200px; }
+  .mk-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; z-index: 2; }
+  .mk-tip .mk-tip-k { color: var(--cds-text-secondary); }
+  .mk-bar { cursor: default; }
+  .mk-period { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-sm); }
+  .mk-period h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0 var(--cds-gap-sm) 0 0; }
+  .mk-seg { display: inline-flex; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); overflow: hidden; }
+  .mk-seg button { font: inherit; font-size: var(--cds-font-size-caption); padding: var(--cds-pad-xs) var(--cds-pad-md); background: transparent; color: var(--color-fg-muted); border: 0; cursor: pointer; }
+  .mk-seg button + button { border-left: 1px solid var(--color-border-line); }
+  .mk-seg button[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); }
+  .mk-date { display: inline-flex; align-items: center; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .mk-date input { font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg); background: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); }
+  .mk-range-note { flex-basis: 100%; }
+  @media (max-width: 480px) { .mk-hide-narrow { display: none; } }
+  .mk-seg button:focus-visible { outline: 2px solid var(--color-fg); outline-offset: -2px; }
+  .mk-tablebox { max-height: 26rem; overflow: auto; }
+  .mk-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-body); }
+  .mk-table th { position: sticky; top: 0; background: var(--color-panel); text-align: left; font-weight: var(--cds-font-weight-medium); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); }
+  .mk-table td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); vertical-align: middle; }
+  .mk-table .mk-num { text-align: right; white-space: nowrap; }
+  .mk-table td.mk-item { overflow-wrap: anywhere; }
+  .mk-cellbar { display: block; height: 4px; margin-top: 4px; border-radius: 2px; margin-left: auto; }
+  .mk-pay { display: grid; gap: var(--cds-gap-md); }
+  .mk-pay-row { display: grid; gap: 4px; }
+  .mk-pay-top { display: flex; justify-content: space-between; gap: var(--cds-gap-sm); font-size: var(--cds-font-size-body); }
+  .mk-pay-track { height: 10px; border-radius: var(--cds-radius); background: var(--cds-chart-grid); overflow: hidden; }
+  .mk-pay-fill { height: 100%; border-radius: var(--cds-radius); }
+  .mk-foot { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-lg); margin: 0; }
+  [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+  [data-dash-source-state=empty] { color: transparent; }
+  .mk-fail { display: flex; align-items: center; justify-content: center; gap: var(--cds-gap-xs); min-height: inherit; height: 100%; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+  .mk-fail::before { content: ""; width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); }
+</style>
+
+<div class="mk">
+  <header class="mk-head" id="summary">
+    <h1 class="mk-title">ยอดขาย <span data-draw="text" data-source="kpis" data-field="store_names" data-row="0">—</span></h1>
+    <p class="mk-lede">เมื่อวานขายได้ <b data-draw="money" data-source="kpis" data-field="yesterday_sales" data-row="0" data-fetchpriority="high">—</b> จาก <b data-draw="count" data-source="kpis" data-field="yesterday_bills" data-row="0">—</b> บิล ยอด 7 วันล่าสุด <b data-draw="change" data-source="kpis" data-field="week_change" data-row="0">—</b> เทียบกับ 7 วันก่อนหน้า</p>
+  </header>
+
+  <section class="mk-tiles" id="tiles" aria-label="ยอดขายสรุป">
+    <div class="mk-card" id="tile-today">
+      <p class="mk-label">วันนี้ (ถึงตอนนี้)</p>
+      <div class="mk-big" data-draw="money" data-source="kpis" data-field="today_sales" data-row="0" data-fetchpriority="high">—</div>
+      <div class="mk-sub"><span><span data-draw="count" data-source="kpis" data-field="today_bills" data-row="0">—</span> บิล</span><span><span data-draw="change" data-source="kpis" data-field="today_change" data-row="0">—</span> เทียบช่วงเวลาเดียวกันสัปดาห์ก่อน</span></div>
+    </div>
+    <div class="mk-card" id="tile-yesterday">
+      <p class="mk-label">เมื่อวาน</p>
+      <div class="mk-big" data-draw="money" data-source="kpis" data-field="yesterday_sales" data-row="0" data-fetchpriority="high">—</div>
+      <div class="mk-sub"><span><span data-draw="count" data-source="kpis" data-field="yesterday_bills" data-row="0">—</span> บิล</span><span><span data-draw="change" data-source="kpis" data-field="yesterday_change" data-row="0">—</span> เทียบวันเดียวกันสัปดาห์ก่อน</span></div>
+    </div>
+    <div class="mk-card" id="tile-week">
+      <p class="mk-label">7 วันล่าสุด</p>
+      <div class="mk-big" data-draw="money" data-source="kpis" data-field="week_sales" data-row="0">—</div>
+      <div class="mk-sub"><span><span data-draw="count" data-source="kpis" data-field="week_bills" data-row="0">—</span> บิล · เฉลี่ย <span data-draw="money" data-source="kpis" data-field="week_avg_bill" data-row="0">—</span>/บิล</span><span><span data-draw="change" data-source="kpis" data-field="week_change" data-row="0">—</span> เทียบ 7 วันก่อนหน้า</span></div>
+    </div>
+    <div class="mk-card" id="tile-month">
+      <p class="mk-label">เดือนนี้</p>
+      <div class="mk-big" data-draw="money" data-source="kpis" data-field="month_sales" data-row="0">—</div>
+      <div class="mk-sub"><span><span data-draw="count" data-source="kpis" data-field="month_bills" data-row="0">—</span> บิล</span><span><span data-draw="change" data-source="kpis" data-field="month_change" data-row="0">—</span> เทียบช่วงเดียวกันเดือนก่อน</span></div>
+    </div>
+  </section>
+
+  <section class="mk-card" id="daily-card">
+    <h2>ยอดขายรายวัน</h2>
+    <p class="mk-note">60 วันล่าสุด ยอดสุทธิหลังหักคืนเงิน ตามเวลาไทย</p>
+    <div class="mk-chart" id="daily-chart" data-draw="daily" data-source="daily"></div>
+  </section>
+
+  <section class="mk-period" id="period" aria-label="เลือกช่วงเวลา">
+    <h2>รายละเอียดช่วง</h2>
+    <div class="mk-seg" role="group" aria-label="ช่วงเวลาสำเร็จรูป">
+      <button type="button" data-preset="7" aria-pressed="false">7 วัน</button>
+      <button type="button" data-preset="30" aria-pressed="false">30 วัน</button>
+      <button type="button" data-preset="90" aria-pressed="false">90 วัน</button>
+      <button type="button" data-preset="month" aria-pressed="false">เดือนนี้</button>
+    </div>
+    <label class="mk-date">จาก <input class="mk-start" type="date" min="2020-01-01" max="2099-12-31" aria-label="วันที่เริ่ม"></label>
+    <label class="mk-date">ถึง <input class="mk-end" type="date" min="2020-01-01" max="2099-12-31" aria-label="วันที่สิ้นสุด"></label>
+    <p class="mk-note mk-range-note">กำลังแสดง <span data-draw="text" data-source="range_summary" data-field="start_date" data-row="0">—</span> ถึง <span data-draw="text" data-source="range_summary" data-field="end_date" data-row="0">—</span> (<span data-draw="count" data-source="range_summary" data-field="days" data-row="0">—</span> วัน)</p>
+  </section>
+
+  <section class="mk-tiles" id="range-tiles" aria-label="สรุปช่วงที่เลือก">
+    <div class="mk-card">
+      <p class="mk-label">ยอดขายในช่วง</p>
+      <div class="mk-big" data-draw="money" data-source="range_summary" data-field="sales" data-row="0">—</div>
+      <div class="mk-sub"><span><span data-draw="count" data-source="range_summary" data-field="bills" data-row="0">—</span> บิล · เฉลี่ย <span data-draw="money" data-source="range_summary" data-field="avg_bill" data-row="0">—</span>/บิล</span></div>
+    </div>
+    <div class="mk-card">
+      <p class="mk-label">กำไรขั้นต้น (เฉพาะสินค้าที่มีต้นทุน)</p>
+      <div class="mk-big" data-draw="money" data-source="range_summary" data-field="gross_profit" data-row="0">—</div>
+      <div class="mk-sub"><span>อัตรากำไร <span data-draw="pct" data-source="range_summary" data-field="margin" data-row="0">—</span></span></div>
+    </div>
+    <div class="mk-card">
+      <p class="mk-label">ยอดขายที่มีข้อมูลต้นทุน</p>
+      <div class="mk-big" data-draw="pct" data-source="range_summary" data-field="cost_coverage" data-row="0">—</div>
+      <div class="mk-sub"><span>ส่วนที่เหลือยังไม่ได้ใส่ต้นทุนใน Loyverse ดูรายการด้านล่าง</span></div>
+    </div>
+  </section>
+
+  <div class="mk-grid">
+    <section class="mk-card" id="items-card">
+      <h2>สินค้าขายดี</h2>
+      <p class="mk-note">15 อันดับตามยอดขายในช่วงที่เลือก กำไรคิดจากต้นทุนใน Loyverse (— คือยังไม่ได้ใส่ต้นทุน)</p>
+      <div class="mk-tablebox">
+        <table class="mk-table" data-source="top_items" data-row-key="item">
+          <thead><tr><th data-field="item">สินค้า</th><th class="mk-num" data-field="qty">จำนวน</th><th class="mk-num" data-field="sales">ยอดขาย</th><th class="mk-num" data-field="profit">กำไร</th><th class="mk-num mk-hide-narrow" data-field="margin">% กำไร</th></tr></thead>
+          <tbody data-draw="items"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="mk-card" id="hourly-card">
+      <h2>ช่วงเวลาที่ขายดี</h2>
+      <p class="mk-note">ยอดขายรวมแยกตามชั่วโมงในช่วงที่เลือก</p>
+      <div class="mk-chart mk-short" id="hourly-chart" data-draw="hourly" data-source="hourly"></div>
+    </section>
+
+    <section class="mk-card" id="pay-card">
+      <h2>ช่องทางชำระเงิน</h2>
+      <p class="mk-note">ยอดรับเงินแยกตามประเภทในช่วงที่เลือก</p>
+      <div class="mk-pay" data-draw="pay" data-source="payments"></div>
+    </section>
+
+    <section class="mk-card" id="employees-card">
+      <h2>ยอดขายตามพนักงาน</h2>
+      <p class="mk-note">นับจากพนักงานที่เปิดบิลใน Loyverse ในช่วงที่เลือก</p>
+      <div class="mk-tablebox">
+        <table class="mk-table" data-source="employees" data-row-key="employee">
+          <thead><tr><th data-field="employee">พนักงาน</th><th class="mk-num" data-field="sales">ยอดขาย</th><th class="mk-num" data-field="bills">บิล</th><th class="mk-num mk-hide-narrow" data-field="avg_bill">เฉลี่ย/บิล</th><th class="mk-num mk-hide-narrow" data-field="refunds">คืนเงิน</th><th class="mk-num" data-field="share">สัดส่วน</th></tr></thead>
+          <tbody data-draw="employees"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="mk-card" id="missing-cost-card">
+      <h2>สินค้าที่ยังไม่มีต้นทุน</h2>
+      <p class="mk-note">ใส่ต้นทุนใน Loyverse (หลังร้าน → สินค้า → ต้นทุน) แล้วกำไรจะคำนวณให้อัตโนมัติ เรียงตามยอดขายในช่วงที่เลือก</p>
+      <div class="mk-tablebox">
+        <table class="mk-table" data-source="missing_cost" data-row-key="item">
+          <thead><tr><th data-field="item">สินค้า</th><th class="mk-num" data-field="qty">จำนวน</th><th class="mk-num" data-field="sales">ยอดขาย</th></tr></thead>
+          <tbody data-draw="missing"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <p class="mk-foot" id="freshness">
+    <span>บิลล่าสุด <span data-draw="text" data-source="kpis" data-field="last_receipt_at" data-row="0">—</span></span>
+    <span>ดึงข้อมูลจาก Loyverse ล่าสุด <span data-draw="text" data-source="kpis" data-field="last_sync_at" data-row="0">—</span> (อัปเดตทุก 10 นาที)</span>
+  </p>
+</div>
+
+<script>
+  // Supabase execute_sql wraps the JSON rows in an <untrusted-data-…> block of text.
+  const fromSupabase = ({ answer }) => {
+    const text = typeof answer === 'string' ? answer : (answer && typeof answer.result === 'string' ? answer.result : null);
+    if (text === null) {
+      if (Array.isArray(answer)) return answer;
+      throw new Error('Unexpected answer from Supabase execute_sql');
+    }
+    // The prose before the block also names the tag, so take the opening tag nearest the closing one.
+    const end = text.indexOf('</untrusted-data-');
+    const open = end < 0 ? -1 : text.lastIndexOf('<untrusted-data-', end);
+    const start = open < 0 ? -1 : text.indexOf('>', open) + 1;
+    if (end < 0 || open < 0 || start <= 0 || start > end) throw new Error(text.slice(0, 300));
+    const rows = JSON.parse(text.slice(start, end).trim());
+    if (!Array.isArray(rows)) throw new Error('Supabase answer is not a list of rows');
+    return rows;
+  };
+  const loaderText = 'คำตอบของ Supabase execute_sql แปลงเป็นแถวข้อมูล';
+  ['kpis', 'daily', 'range_summary', 'top_items', 'hourly', 'payments', 'employees', 'missing_cost'].forEach((id) => dash.loader(id, { description: loaderText, fn: fromSupabase }));
+</script>
+
+<script>
+  const money = (v) => '฿' + d3.format(',.2~f')(v);
+  const ok = (id) => dash.data(id).status === 'ok';
+  const cell = (el) => {
+    const d = dash.data(el.dataset.source);
+    if (d.status !== 'ok' || !d.data.length) return undefined;
+    return d.data[Number(el.dataset.row || 0)][el.dataset.field];
+  };
+  const fail = (el, id) => {
+    if (dash.data(id).status === 'error') {
+      const f = document.createElement('div');
+      f.className = 'mk-fail';
+      f.textContent = 'Failed to load';
+      el.replaceChildren(f);
+      return true;
+    }
+    return false;
+  };
+
+  dash.draw('money', (el) => { const v = cell(el); el.textContent = v == null ? '—' : money(v); });
+  dash.draw('count', (el) => { const v = cell(el); el.textContent = v == null ? '—' : d3.format(',')(v); });
+  dash.draw('text', (el) => { const v = cell(el); el.textContent = v == null || v === '' ? '—' : String(v); });
+  dash.draw('change', (el) => {
+    const v = cell(el);
+    el.classList.remove('mk-up', 'mk-down');
+    if (v == null) { el.textContent = '—'; return; }
+    el.textContent = d3.format('+.1%')(v);
+    if (v > 0) el.classList.add('mk-up');
+    if (v < 0) el.classList.add('mk-down');
+  });
+  dash.draw('pct', (el) => { const v = cell(el); el.textContent = v == null ? '—' : d3.format('.1%')(v); });
+
+  // Date range filter. Unset start/end means the last 30 days (the queries' default).
+  const bkkToday = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok' }).format(new Date());
+  const shift = (iso, days) => { const d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(0, 10); };
+  const presetRange = (p) => {
+    const t = bkkToday();
+    if (p === 'month') return { start: t.slice(0, 8) + '01', end: t };
+    return { start: shift(t, 1 - Number(p)), end: t };
+  };
+  const currentRange = () => {
+    const { start, end } = dash.params();
+    return start || end ? { start: start ?? null, end: end ?? null } : presetRange('30');
+  };
+  const presetButtons = () => document.querySelectorAll('.mk-seg button[data-preset]');
+  presetButtons().forEach((b) => b.addEventListener('click', () => {
+    if (b.dataset.preset === '30') dash.setParams({ start: null, end: null });
+    else dash.setParams(presetRange(b.dataset.preset));
+  }));
+  const dateInputs = () => document.querySelectorAll('.mk-start, .mk-end');
+  dateInputs().forEach((input) => {
+    input.addEventListener('change', () => {
+      if (!input.value || !input.validity.valid) return;
+      const r = currentRange();
+      const next = input.classList.contains('mk-start') ? { start: input.value, end: r.end } : { start: r.start, end: input.value };
+      if (next.start && next.end && next.start > next.end) return;
+      dash.setParams(next);
+    });
+    input.addEventListener('blur', () => syncControls());
+  });
+  const syncControls = () => {
+    const r = currentRange();
+    document.querySelectorAll('.mk-start').forEach((i) => { if (i !== document.activeElement) i.value = r.start ?? ''; });
+    document.querySelectorAll('.mk-end').forEach((i) => { if (i !== document.activeElement) i.value = r.end ?? ''; });
+    presetButtons().forEach((b) => {
+      const p = presetRange(b.dataset.preset);
+      b.setAttribute('aria-pressed', String(p.start === r.start && p.end === r.end));
+    });
+  };
+  dash.onData(syncControls);
+
+  const thDate = new Intl.DateTimeFormat('th-TH', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+  const thWeekday = new Intl.DateTimeFormat('th-TH', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
+
+  const tooltip = (box) => {
+    const tip = document.createElement('div');
+    tip.className = 'mk-tip';
+    tip.hidden = true;
+    box.appendChild(tip);
+    return {
+      show(event, lines) {
+        tip.replaceChildren(...lines.map(([k, cls]) => { const s = document.createElement('div'); if (cls) s.className = cls; s.textContent = k; return s; }));
+        tip.hidden = false;
+        const r = box.getBoundingClientRect();
+        const x = event.clientX - r.left, y = event.clientY - r.top;
+        const w = tip.offsetWidth, h = tip.offsetHeight;
+        tip.style.left = Math.max(0, Math.min(r.width - w, x - w / 2)) + 'px';
+        tip.style.top = Math.max(0, y - h - 12) + 'px';
+      },
+      hide() { tip.hidden = true; },
+    };
+  };
+
+  // Shared bar chart: rows -> bars on a band scale, with y gridlines and a tooltip.
+  const barChart = (el, rows, { x, y, height, xLabel, tipLines, every }) => {
+    const width = Math.max(260, el.clientWidth);
+    const svg = d3.create('svg').attr('width', '100%').attr('viewBox', `0 0 ${width} ${height}`).attr('role', 'img');
+    el.replaceChildren(svg.node());
+    const yMax = d3.max(rows, y) || 1;
+    const ys = d3.scaleLinear([0, yMax], [height - 24, 8]).nice();
+    const fmtY = (v) => (v >= 1000 ? d3.format('~s')(v) : String(v));
+    const probe = svg.append('text').attr('font-size', 11).text(fmtY(ys.ticks(4).at(-1)));
+    const left = Math.ceil(probe.node().getComputedTextLength()) + 10;
+    probe.remove();
+    const xs = d3.scaleBand(rows.map(x), [left, width - 4]).padding(0.2);
+
+    svg.append('g').selectAll('line').data(ys.ticks(4)).join('line')
+      .attr('x1', left).attr('x2', width - 4).attr('y1', (d) => ys(d)).attr('y2', (d) => ys(d))
+      .attr('stroke', 'var(--cds-chart-grid)');
+    svg.append('g').selectAll('text').data(ys.ticks(4)).join('text')
+      .attr('x', left - 6).attr('y', (d) => ys(d)).attr('dy', '0.32em').attr('text-anchor', 'end')
+      .attr('font-size', 11).attr('fill', 'var(--color-fg-muted)').text(fmtY);
+    svg.append('line').attr('x1', left).attr('x2', width - 4).attr('y1', ys(0)).attr('y2', ys(0)).attr('stroke', 'var(--cds-chart-axis)');
+
+    const step = Math.max(every, Math.ceil(rows.length / Math.max(2, Math.floor((width - left) / 48))));
+    svg.append('g').selectAll('text').data(rows.filter((_, i) => i % step === 0)).join('text')
+      .attr('x', (d) => xs(x(d)) + xs.bandwidth() / 2).attr('y', height - 6).attr('text-anchor', 'middle')
+      .attr('font-size', 11).attr('fill', 'var(--color-fg-muted)').text((d) => xLabel(d));
+
+    const tip = tooltip(el);
+    svg.append('g').selectAll('rect').data(rows).join('rect').attr('class', 'mk-bar')
+      .attr('x', (d) => xs(x(d))).attr('width', xs.bandwidth())
+      .attr('y', (d) => ys(Math.max(0, y(d)))).attr('height', (d) => Math.max(0, ys(0) - ys(Math.max(0, y(d)))))
+      .attr('rx', Math.min(3, xs.bandwidth() / 2)).attr('fill', dash.colors[0])
+      .on('pointerenter pointermove', function (event, d) { d3.select(this).attr('fill-opacity', 0.75); tip.show(event, tipLines(d)); })
+      .on('pointerleave', function () { d3.select(this).attr('fill-opacity', null); tip.hide(); });
+  };
+
+  dash.draw('daily', (el) => {
+    if (fail(el, 'daily')) return;
+    if (!ok('daily')) { el.replaceChildren(); return; }
+    const rows = dash.data('daily').data;
+    barChart(el, rows, {
+      x: (d) => d.day, y: (d) => d.sales, height: 220, every: 1,
+      xLabel: (d) => thDate.format(new Date(d.day)),
+      tipLines: (d) => [[thWeekday.format(new Date(d.day)), 'mk-tip-k'], [money(d.sales)], [d3.format(',')(d.bills) + ' บิล']],
+    });
+  });
+
+  dash.draw('hourly', (el) => {
+    if (fail(el, 'hourly')) return;
+    if (!ok('hourly')) { el.replaceChildren(); return; }
+    const all = dash.data('hourly').data;
+    const used = all.filter((d) => d.sales !== 0 || d.bills !== 0);
+    const lo = used.length ? d3.min(used, (d) => d.hour) : 0;
+    const hi = used.length ? d3.max(used, (d) => d.hour) : 23;
+    const rows = all.filter((d) => d.hour >= lo && d.hour <= hi);
+    barChart(el, rows, {
+      x: (d) => d.hour, y: (d) => d.sales, height: 200, every: 1,
+      xLabel: (d) => String(d.hour).padStart(2, '0') + ':00',
+      tipLines: (d) => [[String(d.hour).padStart(2, '0') + ':00–' + String(d.hour).padStart(2, '0') + ':59', 'mk-tip-k'], [money(d.sales)], [d3.format(',')(d.bills) + ' บิล']],
+    });
+  });
+
+  dash.draw('items', (tbody) => {
+    if (!ok('top_items')) { tbody.replaceChildren(); return; }
+    const rows = dash.data('top_items').data;
+    const max = d3.max(rows, (r) => r.sales) || 1;
+    tbody.replaceChildren(...rows.map((r) => {
+      const tr = document.createElement('tr');
+      const name = document.createElement('td'); name.className = 'mk-item'; name.textContent = r.item;
+      const qty = document.createElement('td'); qty.className = 'mk-num'; qty.textContent = d3.format(',.3~f')(r.qty);
+      const sales = document.createElement('td'); sales.className = 'mk-num';
+      const val = document.createElement('span'); val.textContent = money(r.sales);
+      const bar = document.createElement('span'); bar.className = 'mk-cellbar';
+      bar.style.width = Math.max(2, (Math.max(0, r.sales) / max) * 100) + '%';
+      bar.style.background = dash.colors[0];
+      sales.append(val, bar);
+      const profit = document.createElement('td'); profit.className = 'mk-num'; profit.textContent = r.profit == null ? '—' : money(r.profit);
+      const margin = document.createElement('td'); margin.className = 'mk-num mk-hide-narrow'; margin.textContent = r.margin == null ? '—' : d3.format('.1%')(r.margin);
+      tr.append(name, qty, sales, profit, margin);
+      return tr;
+    }));
+  });
+
+  const rowsOf = (id) => (ok(id) ? dash.data(id).data : []);
+  const td = (text, cls) => { const c = document.createElement('td'); if (cls) c.className = cls; c.textContent = text; return c; };
+
+  dash.draw('employees', (tbody) => {
+    tbody.replaceChildren(...rowsOf('employees').map((r) => {
+      const tr = document.createElement('tr');
+      tr.append(td(r.employee), td(money(r.sales), 'mk-num'), td(d3.format(',')(r.bills), 'mk-num'),
+        td(r.avg_bill == null ? '—' : money(r.avg_bill), 'mk-num mk-hide-narrow'), td(d3.format(',')(r.refunds), 'mk-num mk-hide-narrow'),
+        td(r.share == null ? '—' : d3.format('.1%')(r.share), 'mk-num'));
+      return tr;
+    }));
+  });
+
+  dash.draw('missing', (tbody) => {
+    tbody.replaceChildren(...rowsOf('missing_cost').map((r) => {
+      const tr = document.createElement('tr');
+      tr.append(td(r.item, 'mk-item'), td(d3.format(',.3~f')(r.qty), 'mk-num'), td(money(r.sales), 'mk-num'));
+      return tr;
+    }));
+  });
+
+  dash.draw('pay', (el) => {
+    if (fail(el, 'payments')) return;
+    if (!ok('payments')) { el.replaceChildren(); return; }
+    const rows = dash.data('payments').data;
+    el.replaceChildren(...rows.map((r, i) => {
+      const row = document.createElement('div'); row.className = 'mk-pay-row';
+      const top = document.createElement('div'); top.className = 'mk-pay-top';
+      const name = document.createElement('span'); name.textContent = r.method;
+      const val = document.createElement('span');
+      val.textContent = money(r.amount) + ' · ' + d3.format('.1%')(r.share) + ' · ' + d3.format(',')(r.bills) + ' บิล';
+      top.append(name, val);
+      const track = document.createElement('div'); track.className = 'mk-pay-track';
+      const fill = document.createElement('div'); fill.className = 'mk-pay-fill';
+      fill.style.width = Math.max(1, Math.max(0, r.share) * 100) + '%';
+      fill.style.background = dash.colors[i % dash.colors.length];
+      track.append(fill);
+      row.append(top, track);
+      return row;
+    }));
+  });
+</script>

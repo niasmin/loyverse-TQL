@@ -1,0 +1,36 @@
+name: Monthly sales report
+
+on:
+  schedule:
+    - cron: '23 1 1 * *' # 08:23 Bangkok on the 1st: report for last month
+  workflow_dispatch:
+    inputs:
+      start:
+        description: 'First day (YYYY-MM-DD). Leave empty for last month.'
+        required: false
+      end:
+        description: 'Last day (YYYY-MM-DD). Leave empty for last month.'
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install tools
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils
+          npm install --no-save --prefix scripts/sales-report playwright@1.48.2
+          npx --prefix scripts/sales-report playwright install --with-deps chromium
+      - name: Build report and send to LINE
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SYNC_KEY: ${{ secrets.LOYVERSE_SYNC_KEY }}
+        run: bash scripts/sales-report/run.sh "${{ inputs.start }}" "${{ inputs.end }}"

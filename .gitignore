@@ -1,0 +1,5 @@
+# sales reports contain shop data; delivered via LINE, not kept in git
+/reports
+/scripts/sales-report/node_modules
+__pycache__/
+.env
